@@ -1,0 +1,68 @@
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+# Правила проверяются по порядку, срабатывает первое подходящее.
+# Строка для сопоставления имеет вид: domain<key=value, ...><>attribute: value
+rules:
+
+  # Статус коннектора: kafka_connect_connector_status{connector, status="running|paused|failed|..."} = 1
+  - pattern: 'kafka.connect<type=connector-metrics, connector=([^>]+)><>status: ([a-z-]+)'
+    name: kafka_connect_connector_status
+    value: 1
+    labels:
+      connector: "$1"
+      status: "$2"
+    help: "Kafka Connect connector status"
+    type: GAUGE
+
+  # Статус задачи: kafka_connect_task_status{connector, task, status} = 1
+  - pattern: 'kafka.connect<type=connector-task-metrics, connector=([^,]+), task=([^>]+)><>status: ([a-z-]+)'
+    name: kafka_connect_task_status
+    value: 1
+    labels:
+      connector: "$1"
+      task: "$2"
+      status: "$3"
+    help: "Kafka Connect task status"
+    type: GAUGE
+
+  # Метрики задач: kafka_connect_source_task_source_record_poll_total,
+  # kafka_connect_source_task_source_record_write_total, kafka_connect_task_error_total_record_errors, ...
+  - pattern: 'kafka.connect<type=(source-task|sink-task|connector-task|task-error)-metrics, connector=([^,]+), task=([^>]+)><>([a-z-]+)'
+    name: kafka_connect_$1_$4
+    labels:
+      connector: "$2"
+      task: "$3"
+    type: GAUGE
+
+  # Метрики воркера по коннектору: kafka_connect_worker_connector_running_task_count, ...
+  - pattern: 'kafka.connect<type=connect-worker-metrics, connector=([^>]+)><>([a-z-]+)'
+    name: kafka_connect_worker_$2
+    labels:
+      connector: "$1"
+    type: GAUGE
+
+  # Общие метрики воркера: kafka_connect_worker_connector_count, kafka_connect_worker_task_count, ...
+  - pattern: 'kafka.connect<type=connect-worker-metrics><>([a-z-]+)'
+    name: kafka_connect_worker_$1
+    type: GAUGE
+
+  # Метрики Debezium (snapshot / streaming), вариант MBean с task
+  - pattern: 'debezium.([^:]+)<type=connector-metrics, context=([^,]+), server=([^,]+), task=([^>]+)><>([A-Za-z]+)'
+    name: debezium_metrics_$5
+    labels:
+      plugin: "$1"
+      context: "$2"
+      server: "$3"
+      task: "$4"
+    type: GAUGE
+
+  # Метрики Debezium (snapshot / streaming): debezium_metrics_millisecondsbehindsource,
+  # debezium_metrics_totalnumberofeventsseen, debezium_metrics_connected, ...
+  - pattern: 'debezium.([^:]+)<type=connector-metrics, context=([^,]+), server=([^>]+)><>([A-Za-z]+)'
+    name: debezium_metrics_$4
+    labels:
+      plugin: "$1"
+      context: "$2"
+      server: "$3"
+    type: GAUGE
