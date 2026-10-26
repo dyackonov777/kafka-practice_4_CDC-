@@ -310,8 +310,8 @@ UPDATE users SET email = 'new@example.com' WHERE name = 'Test User';
    ```
 
    В выводе должны быть строки вида `kafka_connect_connector_status{connector="postgres-connector",status="running",} 1.0` и `debezium_metrics_connected{context="streaming",...} 1.0`.
-![img_9.png](docs/images/img_9.png)
 2. Необходимо открыть http://localhost:9090 → **Status → Targets**. Цель `kafka-connect` (`kafka-connect:9404`) должна быть в состоянии **UP**.
+![img_9.png](docs/images/img_9.png)
 3. Во вкладке **Graph** выполните, например, `kafka_connect_source_task_source_record_write_total`.
 ![img_10.png](docs/images/img_10.png)
 ## Шаг 6. Дашборд в Grafana
